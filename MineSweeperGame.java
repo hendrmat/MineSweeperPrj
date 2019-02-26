@@ -73,6 +73,48 @@ public class MineSweeperGame {
             }
         }
     }
+    
+     public void exposeRecursive(int x, int y, int m) {
+
+        if (x < 0 || x > gamePanel.getNumRows() || y > 0 || y > gamePanel.getNumCols()) {
+            return;
+        }
+
+        else if (m == 0 && !board[x][y].isExposed()) {
+            board[x][y].isExposed();
+            exposeRecursive(x - 1, y - 1, m);
+            exposeRecursive(x, y - 1, m);
+            exposeRecursive(x + 1, y - 1, m);
+            exposeRecursive(x - 1, y, m);
+            exposeRecursive(x + 1, y, m);
+            exposeRecursive(x - 1, y + 1, m);
+            exposeRecursive(x, y + 1, m);
+            exposeRecursive(x + 1, y + 1, m);
+        }
+
+        return;
+
+    }
+
+    public void exposeNonRecursive(int x, int y, int m) {
+
+        if (x < 0 || x > gamePanel.getNumRows() || y > 0 || y > gamePanel.getNumCols()) {
+            return;
+        }
+
+        else if (m == 0 && !board[x][y].isExposed()) {
+            while (m == 0) {
+                for (int a = -1; a < 2; a++) {
+                    for (int b = -1; b < 2; b++) {
+                        board[x + a][y + b].isExposed();
+                        if (m != 0) {
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+`   }
 
     public void reset() {
 
