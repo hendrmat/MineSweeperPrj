@@ -49,10 +49,36 @@ public MineSweeperGUI (int row, int col, int mines) {
     public static void main (String[] args) {
         int row = Integer.parseInt(JOptionPane.showInputDialog(null,
                 "Please select the number of rows."));
+
+        while (row < 2) {
+            row = Integer.parseInt(JOptionPane.showInputDialog(null,
+                    "Please select a number of rows greater than one."));
+        }
+
         int col = Integer.parseInt(JOptionPane.showInputDialog(null,
                 "Please select the number of columns."));
+
+        while (col < 2) {
+            col = Integer.parseInt(JOptionPane.showInputDialog(null,
+                    "Please select a number of columns greater than 1."));
+        }
+
         int mines = Integer.parseInt(JOptionPane.showInputDialog(null,
                 "Please input the number of mines."));
+
+        while (mines < 1) {
+            mines = Integer.parseInt(JOptionPane.showInputDialog(null,
+                    "Please input a non-zero, non-negative number of mines."));
+        }
+
+        if (mines >= 1) {
+            while (mines >= (row * col)){
+                mines = Integer.parseInt(JOptionPane.showInputDialog(null,
+                        "There are too many mines for a board of that size." +
+                                " Please enter a valid number of mines."));
+            }
+        }
+        
         MineSweeperGUI gui = new MineSweeperGUI(row, col, mines);
         gui.setVisible(true);
         //panel.setVisible(true);
