@@ -85,6 +85,7 @@ public class MineSweeperGame {
                     if ((row + i >= 0 && row + i < size) && col + j >= 0
                         && col + j < size) {
                         board[row + i][col + j].setExposed(true);
+                        exposeRecursive(row, col, 0);
                     }
                 }
             }
@@ -92,12 +93,8 @@ public class MineSweeperGame {
     }
 
     public void reset(){
-
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                board[row][col] = new Cell();
-                }
-            }
+        totalMineCount = 0;
+        MineSweeperGame game = new MineSweeperGame(size);
     }
 
     public int getWins() {
@@ -109,6 +106,28 @@ public class MineSweeperGame {
     }
 
     public void toggleFlag(int row, int column) {
+
+    }
+
+    public void exposeRecursive(int x, int y, int m) {
+
+        if (x < 0 || x > size || y < 0 || y > size) {
+            return;
+        }
+
+        else if (m == 0 && !board[x][y].isExposed()) {
+            board[x][y].isExposed();
+            exposeRecursive(x - 1, y - 1, m);
+            exposeRecursive(x, y - 1, m);
+            exposeRecursive(x + 1, y - 1, m);
+            exposeRecursive(x - 1, y, m);
+            exposeRecursive(x + 1, y, m);
+            exposeRecursive(x - 1, y + 1, m);
+            exposeRecursive(x, y + 1, m);
+            exposeRecursive(x + 1, y + 1, m);
+        }
+
+        return;
 
     }
 

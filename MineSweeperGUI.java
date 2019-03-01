@@ -39,7 +39,7 @@ public class MineSweeperGUI extends JFrame {
         int size = Integer.parseInt(sizeHolder);
         int numMines = Integer.parseInt(mines);
 
-        //Creates the frame and sets up the componentsh for the rest of the GUI
+        //Creates the frame and sets up the components for the rest of the GUI
         frame.getContentPane().add(new MineSweeperPanel(size));
         frame.setSize(10 * size, 10 * size);
         frame.pack();
