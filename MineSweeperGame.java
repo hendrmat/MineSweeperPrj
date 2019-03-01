@@ -1,50 +1,67 @@
 package project2;
 
+import javax.swing.*;
 import java.util.Random;
+
 public class MineSweeperGame {
 
+
+    private int size;
     private Cell[][] board;
     private GameStatus status;
-    private int totalMineCount;
-    private MineSweeperPanel gamePanel;
-
-    public void setTotalMineCount (int totalMineCount){
-        this.totalMineCount = totalMineCount;
-    }
-
-    public int getTotalMineCount() {
-        return totalMineCount;
-    }
+    private int totalMineCount = 10;
+    private int wins;
+    private int losses;
 
 
-    public MineSweeperGame() {
+    public MineSweeperGame(int size) {
 
-        board = new Cell[gamePanel.getNumRows()][gamePanel.getNumCols()];
-        gamePanel = new MineSweeperPanel();
-
-        for (int row = 0; row < gamePanel.getNumRows(); row++) {
-            for (int col = 0; col < gamePanel.getNumCols(); col++) {
-                board[row][col] = new Cell(0, false,
-                        false, false);
+        board = new Cell[size][size];
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                board[row][col] = new Cell();
             }
         }
-
         Random random = new Random();
         int mineCount = 0;
-        while (mineCount < totalMineCount) {
-            int row = random.nextInt(gamePanel.getNumRows());
-            int col = random.nextInt(gamePanel.getNumCols());
-
+        while (mineCount < totalMineCount) { // place the total number of mines
+            int col = random.nextInt(size);
+            int row = random.nextInt(size);
             if (!board[row][col].isMine()) {
                 board[row][col].setMine(true);
                 mineCount++;
             }
         }
+
+
     }
 
-    public void select (int row, int col) {
-        if (board[row][col].isFlagged()) {
+
+
+
+    public GameStatus getGameStatus(){
+        return GameStatus.Lost;
+    }
+
+    public Cell getCell(int row, int col){
+        return board[row][col];
+    }
+
+
+    public void select(int row, int col){
+        //first we have to check if the cell is flagged.
+        // if it is we want to do nothing.
+        System.out.println("Ouch!");
+        if(board[row][col].isFlagged()) {
             return;
+        }
+
+        if(board[row][col].isMine()) {
+
+            status = GameStatus.Lost;
+            losses++;
+            JOptionPane.showMessageDialog(null, "Wow! You Lose!");
+            reset();
         }
 
         board[row][col].setExposed(true);
@@ -54,8 +71,8 @@ public class MineSweeperGame {
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 if ((board[row + i][col + j].isMine()) &&
-                (row + i >= 0 && row + i < gamePanel.getNumRows()) &&
-                (col + j >= 0 && col + j < gamePanel.getNumCols())) {
+                        (row + i >= 0 && row + i < size) &&
+                        (col + j >= 0 && col + j < size)) {
                     nearbyMines++;
                 }
             }
@@ -65,87 +82,36 @@ public class MineSweeperGame {
         if (nearbyMines == 0) {
             for (int i = -1; i < 2; i++) {
                 for (int j = -1; j < 2; j++) {
-                    if ((row + i >= 0 && row + i < gamePanel.getNumRows()) &&
-                            (col + j >= 0 && col + j < gamePanel.getNumCols())) {
+                    if ((row + i >= 0 && row + i < size) && col + j >= 0
+                        && col + j < size) {
                         board[row + i][col + j].setExposed(true);
                     }
                 }
             }
         }
     }
-    
-     public void exposeRecursive(int x, int y, int m) {
 
-        if (x < 0 || x > gamePanel.getNumRows() || y > 0 || y > gamePanel.getNumCols()) {
-            return;
-        }
+    public void reset(){
 
-        else if (m == 0 && !board[x][y].isExposed()) {
-            board[x][y].isExposed();
-            exposeRecursive(x - 1, y - 1, m);
-            exposeRecursive(x, y - 1, m);
-            exposeRecursive(x + 1, y - 1, m);
-            exposeRecursive(x - 1, y, m);
-            exposeRecursive(x + 1, y, m);
-            exposeRecursive(x - 1, y + 1, m);
-            exposeRecursive(x, y + 1, m);
-            exposeRecursive(x + 1, y + 1, m);
-        }
-
-        return;
-
-    }
-
-    public void exposeNonRecursive(int x, int y, int m) {
-
-        if (x < 0 || x > gamePanel.getNumRows() || y > 0 || y > gamePanel.getNumCols()) {
-            return;
-        }
-
-        else if (m == 0 && !board[x][y].isExposed()) {
-            while (m == 0) {
-                for (int a = -1; a < 2; a++) {
-                    for (int b = -1; b < 2; b++) {
-                        board[x + a][y + b].isExposed();
-                        if (m != 0) {
-                            return;
-                        }
-                    }
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                board[row][col] = new Cell();
                 }
             }
-        }
-`   }
+    }
 
-    public void reset() {
+    public int getWins() {
+        return wins;
+    }
+    public int getLosses(){
 
-        for (int row = 0; row < gamePanel.getNumRows(); row++) {
-            for (int col = 0; col < gamePanel.getNumCols(); col++) {
-                board[row][col] = new Cell(0, false,
-                        false, false);
-            }
-        }
+        return losses;
+    }
+
+    public void toggleFlag(int row, int column) {
 
     }
 
-    public GameStatus getGameStatus() {
 
-        int covered = 0;
-        for (int row = 0; row < gamePanel.getNumRows(); row++) {
-            for (int col = 0; col < gamePanel.getNumCols(); col++) {
-                if (!board[row][col].isExposed()) {
-                    covered++;
-                }
-            }
-        }
-        if (covered == totalMineCount) {
-            return status.Won;
-        }
 
-        return status.NotOverYet;
-
-    }
-
-    public Cell getCell(int row, int col) {
-        return board[row][col];
-    }
 }

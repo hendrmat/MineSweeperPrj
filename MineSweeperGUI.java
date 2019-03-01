@@ -1,95 +1,52 @@
+/******************************************************
+ * Written by Cameron Shearer and Matt Hendrick
+ * CIS 163
+ * MWF 11-12
+ *****************************************************/
+
 package project2;
 
 import javax.swing.*;
-import java.awt.GridBagConstraints;
-import java.awt.GridLayout;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
-
+/**
+ * This is the GUI for MineSweeper, it can range in size from 3x3 to 30x30.
+ * There is also an option to personalize it by adding your name, and there
+ * will also be a record of your wins and losses.
+ *
+ */
 public class MineSweeperGUI extends JFrame {
+    public MineSweeperGUI() {
+        JFrame frame = new JFrame();
+        //set the title of the game to the name variable
 
-JLabel wins, losses, mine;
+        //make sure the frame will close
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-public MineSweeperGUI (int row, int col, int mines) {
+        //Allows the player to enter his/her name
+        String playerName = JOptionPane.showInputDialog("Please enter your name: ");
+        frame.setTitle(playerName + "'s Minesweeper");
 
-    JFrame frame = new JFrame("MineSweeper");
-    frame.setSize(1210,790);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.getContentPane().setLayout(new GridLayout());
-    frame.pack();
-    frame.setVisible(true);
-    JPanel panel = new MineSweeperPanel();
+        //Allows the player to enter the size of the board
+        String sizeHolder = JOptionPane.showInputDialog("Please" +
+                        " enter the preferred size of the board (3-30: ",
+                "10");
 
-    GridBagConstraints loc = new GridBagConstraints();
-    loc.gridx = 2;
-    loc.gridy = 1;
-    loc.gridwidth = 1;
-    wins = new JLabel("Wins: 0");
-    loc.gridx = 3;
-    loc.gridy = 1;
+        //Allows the player to enter the number of mines on the board
+        String mines = JOptionPane.showInputDialog("Please enter the number of mines.",
+                10);
 
-    loc = new GridBagConstraints();
-    loc.gridx = 2;
-    loc.gridy = 5;
-    loc.gridwidth = 1;
-    losses = new JLabel("Losses: 0");
-    loc.gridx = 3;
-    loc.gridy = 5;
+        //Converts the string to an integer
+        int size = Integer.parseInt(sizeHolder);
+        int numMines = Integer.parseInt(mines);
 
-    loc = new GridBagConstraints();
-    loc.gridx = 2;
-    loc.gridy = 9;
-    loc.gridwidth = 1;
-    mine = new JLabel("Total Mine Count:");
-    loc.gridx = 3;
-    loc.gridy = 9;
-}
-
-    public static void main (String[] args) {
-        int row = Integer.parseInt(JOptionPane.showInputDialog(null,
-                "Please select the number of rows."));
-
-        while (row < 2) {
-            row = Integer.parseInt(JOptionPane.showInputDialog(null,
-                    "Please select a number of rows greater than one."));
-        }
-
-        int col = Integer.parseInt(JOptionPane.showInputDialog(null,
-                "Please select the number of columns."));
-
-        while (col < 2) {
-            col = Integer.parseInt(JOptionPane.showInputDialog(null,
-                    "Please select a number of columns greater than 1."));
-        }
-
-        int mines = Integer.parseInt(JOptionPane.showInputDialog(null,
-                "Please input the number of mines."));
-
-        while (mines < 1) {
-            mines = Integer.parseInt(JOptionPane.showInputDialog(null,
-                    "Please input a non-zero, non-negative number of mines."));
-        }
-
-        if (mines >= 1) {
-            while (mines >= (row * col)){
-                mines = Integer.parseInt(JOptionPane.showInputDialog(null,
-                        "There are too many mines for a board of that size." +
-                                " Please enter a valid number of mines."));
-            }
-        }
-        
-        MineSweeperGUI gui = new MineSweeperGUI(row, col, mines);
-        gui.setVisible(true);
-        //panel.setVisible(true);
-
-
-
-
-
-
-
+        //Creates the frame and sets up the componentsh for the rest of the GUI
+        frame.getContentPane().add(new MineSweeperPanel(size));
+        frame.setSize(10 * size, 10 * size);
+        frame.pack();
+        frame.setVisible(true);
     }
 
-
+    public static void main (String[]args){
+        MineSweeperGUI gui = new MineSweeperGUI();
+    }
 }
