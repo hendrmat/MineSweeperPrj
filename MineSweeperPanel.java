@@ -1,149 +1,297 @@
-package project2;
 
 import javax.swing.*;
-import java.awt.GridLayout;
-import java.awt.Color;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.AbstractList;
+import java.util.Objects;
 
-
-public class MineSweeperPanel extends JPanel {
-
+public class MineSweeperPanel extends JPanel
+{
+    // a 2-dimensional array that represents the GUI board
     private JButton[][] board;
+    // a single cell received from the game object
     private Cell iCell;
+    //JButton that allows a user to quit the game
     private JButton quitButton;
-    private JButton cheatButton;
-    private JButton defaultButton;
-    private int numRows;
-    private int numCols;
-    public int losses;
-    public int wins;
+    //instance variable for the game.
     private MineSweeperGame game;
+    //instance variable for the mines
+    private JButton minesButton;
+    //instance variable for a button that reveals cells.
+    private JButton showCell;
+    //instance variable for a new game button
+    private JButton newGame;
+    //Size of board
+    private int size;
+
+    //Keeps track of wins and losses
+    private int win;
+    private int lose;
+
+    private boolean minesExposed;
+
+    //Displays wins and losses
+    private JLabel lossesLabel;
+    private JLabel winsLabel;
+
+    //Image Icon for empty cells
+    private ImageIcon emptyIcon;
+
+    JPanel mineSweep;
+    JPanel somePanel;
+
+    /******************************************************************
+     *A method that initializes all instance variables and creates new
+     * JPanels one of which contains the board for the game
+     *****************************************************************/
+    public MineSweeperPanel(int size) {
+        this.size = size;
+
+        //Creates panel that is filled with cells and JButtons
+        mineSweep = new JPanel();
+
+        //creates a bottom panel for labels and action buttons
+        somePanel = new JPanel();
+        quitButton = new JButton();
+
+        // A mouse listener for the board
+        theMouseListener mouseListener = new theMouseListener();
+
+        //creating buttons
+
+        //instantiating the quit button
+        this.quitButton = new JButton("Quit");
+
+        // New Game button instantiation
+        this.newGame = new JButton("New Game");
+
+        //Making a new instance of the game
+        this.game = new MineSweeperGame(this.size);
+
+        add(somePanel);
+        add(mineSweep);
+
+        //instantiating the mine hide button
+        this.minesButton = new JButton("Mine Visibility On/Off");
+
+        //Wins and losses label instantiation
+        this.lossesLabel = new JLabel("Losses: ");
+        this.winsLabel = new JLabel("Wins: ");
+
+        //Showing whats inside a cell button instantiation
+        this.showCell = new JButton("Show Contents of Cell");
+
+        //reset win and lose to 0
+        this.win = 0;
+        this.lose = 0;
+
+        // Using Grid Layout set to the inputted size
+        mineSweep.setLayout(new GridLayout(this.size, this.size));
+        add(mineSweep, BorderLayout.CENTER);
+
+        //using Grid layout for overall panel as well
+        somePanel.setLayout(new GridLayout(1, 6));
+        add(somePanel, BorderLayout.SOUTH);
+
+        //Making a button listener so the buttons actually work
+        buttonListener listener = new buttonListener();
+
+        //Adding the button listener to the buttons
+        minesButton.addActionListener(listener);
+        showCell.addActionListener(listener);
+        newGame.addActionListener(listener);
+        quitButton.addActionListener(listener);
+
+        //Adding it all to the panel
+        somePanel.add(newGame);
+        somePanel.add(quitButton);
+        somePanel.add(minesButton);
+        somePanel.add(showCell);
+        somePanel.add(winsLabel);
+        somePanel.add(lossesLabel);
 
 
-    public void setNumRows(int numRows) {
-        this.numRows = numRows;
+        //Sets up the board for the game
+        for (int row = 0; row < 10; row++) {
+            for (int col = 0; col < 10; col++) {
+                board[row][col] = new JButton("", emptyIcon);
+                board[row][col].addActionListener(listener);
+                somePanel.add(board[row][col]);
+            }
+        }
+
+        //displays board
+        this.displayBoard();
     }
 
-    public int getNumRows() {
-        return numRows;
+    public void gameButtons(theMouseListener mouseListener,
+                            JPanel mineSweep) {
+        JButton newBut;
+        this.board = new JButton[this.size][this.size];
+        for (int i = 0; i < this.size; i++) {
+            for (int j = 0; j < this.size; j++) {
+                newBut = buttonSetup(mouseListener);
+                this.board[i][j] = newBut;
+                mineSweep.add(newBut);
+            }
+        }
+
     }
 
-    public void setNumCols(int numCols) {
-        this.numCols = numCols;
+    public JButton buttonSetup(theMouseListener mouseListener) {
+        emptyIcon = new ImageIcon();
+        //create a new button
+        JButton cellButton = new JButton("" + emptyIcon);
+
+        //using Dimension, set the size of the button
+        cellButton.setPreferredSize(new Dimension(20, 20));
+
+        //add our MouseListener
+        cellButton.addMouseListener(mouseListener);
+
+        //return the blueprint
+        return cellButton;
     }
 
-    public int getNumCols() {
-        return numCols;
-    }
+    private class buttonListener implements ActionListener {
 
-    public int getWins() {
-        return wins;
-    }
+        @Override
+        public void actionPerformed(ActionEvent e) {
 
-    public int getLosses() {
-        return losses;
-    }
+            //if the button that is detected being clicked is the quit
+            //button it closes everything associated with the program
+            if (quitButton == e.getSource()) {
+                System.exit(0);
 
 
-    public MineSweeperPanel() {
-        game = new MineSweeperGame();
-        JPanel buttons = new JPanel();
-        quitButton = new JButton("Quit", new ImageIcon(""));
-        quitButton.add(buttons);
-        cheatButton = new JButton("Cheat!", new ImageIcon(""));
-        cheatButton.add(buttons);
-        defaultButton = new JButton("Default Setting", new ImageIcon(""));
-        defaultButton.add(buttons);
-        buttons.setBackground(Color.GRAY);
-        buttons.setVisible(true);
-
-        JPanel gamePanel = new JPanel();
-        GridLayout layout = new GridLayout(numRows, numCols);
-        gamePanel.setLayout(layout);
-        board = new JButton[numRows][numCols];
-        for (int i = 0; i < numRows; i++) {
-            for (int j = 0; j < numCols; j++) {
-                board[i][j] = new JButton("", new ImageIcon(""));
-                //board[i][j].addActionListener(this);
-                gamePanel.add(board[i][j]);
             }
         }
     }
-    private void displayBoard() {
-
-        for (int i = 0; i < numRows; i++) {
-            for (int j = 0; j < numCols; j++) {
-                iCell = game.getCell(i, j);
-                if (iCell.isExposed()) {
-                    board[i][j].setEnabled(false);
-                } else {
-                    board[i][j].setEnabled(true);
+    public void displayBoard(){
+        JButton button;
+        for (int row = 0; row < this.size; row++) {
+            for (int col = 0; col < this.size; col++) {
+                iCell = this.game.getCell(row, col);
+                    button = this.board[row][col];
+                  if (iCell.isExposed())
+                        board[row][col].setEnabled(false);
+                    else
+                        board[row][col].setEnabled(true);
                 }
 
-                if (iCell.isExposed()) {
-                    board[i][j].setText("" + iCell.getMineCount());
-                }
+
+           }
+
+        }
+    private class theMouseListener implements MouseListener{
+
+        @Override
+        public void mouseClicked(MouseEvent e){
+
+        }
+        @Override
+        public void mousePressed(MouseEvent e){
+            if (e.getButton() == MouseEvent.BUTTON1) {
+                selectCell(e);
+            }
+            else if (e.getButton() == MouseEvent.BUTTON3){
+                toggleCellFlag(e);
             }
         }
-    }
-
-    private class ButtonListener implements MouseListener {
-
-        private void actionPerformed(ActionEvent e) {
-
-            JPanel buttons = new JPanel();
-            quitButton = new JButton("Quit", new ImageIcon(""));
-            quitButton.add(buttons);
-//            //quitButton.addActionListener(this);
-//
-//            if (SwingUtilities.isRightMouseButton()) {
-//                for (int row = 0; row < numRows; row++)
-//                    for (int col = 0; col < numCols; col++) {
-//
-//                    }
-//            }
-
-            if (game.getGameStatus() == GameStatus.Lost) {
-                JOptionPane.showMessageDialog(null,
-                        "Wow! You Lose!");
-                losses++;
-                game.reset();
-            } else if (game.getGameStatus() == GameStatus.Won) {
-                JOptionPane.showMessageDialog(null,
-                        "Bravo! You Win!");
-                wins++;
-                game.reset();
-            }
-        }
-
         @Override
-        public void mouseClicked(MouseEvent mouseEvent) {
+        public void mouseReleased(MouseEvent e){
+
+        }
+        @Override
+        public void mouseEntered(MouseEvent e){
 
         }
 
         @Override
-        public void mousePressed(MouseEvent mouseEvent) {
-
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent mouseEvent) {
-
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent mouseEvent) {
-
-        }
-
-        @Override
-        public void mouseExited(MouseEvent mouseEvent) {
+        public void mouseExited(MouseEvent e){
 
         }
     }
+
+    /******************************************************************
+     * A class that selects a cell and updates wins/losses if that is
+     * the result.
+     * @param e a Mouse Event for when someone clicks.
+     *****************************************************************/
+    private void selectCell(MouseEvent e){
+    int rowsAndColumns[] = getLocationOfEvent(e);
+    int rows = Objects.requireNonNull(rowsAndColumns)[0];
+    int columns = rowsAndColumns[1];
+    this.game.select(rows,columns);
+
+    this.win = this.game.getWins();
+    this.lose = this.game.getLosses();
+
+    winsLabel.setText("wins: " +win);
+    lossesLabel.setText(("losses: "+lose));
+
+}
+
+/******************************************************************
+ * A class that gets the location of the clicked cell.
+ * @param e a Mouse Event for when someone clicks.
+ * @return cells an int array that contains cell locations
+ *****************************************************************/
+private int[] getLocationOfEvent(MouseEvent e){
+    int[] cells = {0,0};
+    for(int i = 0; i<this.size;i++){
+        for (int j = 0; j<this.size;j++)
+        if(this.board[i][j] == e.getSource()){
+            cells[0]=i;
+            cells[1]=j;
+            return cells;
+        }
     }
+    //this should not occur if something triggers a listener
+    return null;
+}
+    private void toggleCellFlag(MouseEvent e) {
+        //getting the location of the cell that we need flag/unflag
+        int rowsAndColumns[]= getLocationOfEvent(e);
+        int row = Objects.requireNonNull(rowsAndColumns)[0];
+        int column = rowsAndColumns[1];
+
+        this.game.toggleFlag(row,column);
+
+
+        //recall the GUI so it can update
+
+        displayBoard();
+    }
+
+    private void toggleMines(){
+
+        //setting mines exposed to the opposite value
+        this.minesExposed = !this.minesExposed;
+
+
+        //swapping the Mines appearance
+        if(minesExposed){
+            minesButton.setText("Hide Mines");
+        }
+        else{
+            minesButton.setText("Show Mines");
+        }
+
+
+        //displaying the GUI again to update it
+        displayBoard();
+    }
+
+    @Override
+    public String toString(){
+        String string = new String();
+        return string;
+    }
+
+
+
+}
 
