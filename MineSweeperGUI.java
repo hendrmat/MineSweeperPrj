@@ -11,7 +11,8 @@ import javax.swing.*;
 /**
  * This is the GUI for MineSweeper, it can range in size from 3x3 to 30x30.
  * There is also an option to personalize it by adding your name, and there
- * will also be a record of your wins and losses.
+ * will also be a record of your wins and losses.  GUI written by Cameron
+ * Shearer.
  *
  */
 public class MineSweeperGUI extends JFrame {
@@ -40,13 +41,14 @@ public class MineSweeperGUI extends JFrame {
         int numMines = Integer.parseInt(mines);
 
         //Creates the frame and sets up the components for the rest of the GUI
-        frame.getContentPane().add(new MineSweeperPanel(size));
+        frame.getContentPane().add(new MineSweeperPanel(size, numMines));
         frame.setSize(10 * size, 10 * size);
         frame.pack();
         frame.setVisible(true);
     }
 
     public static void main (String[]args){
+
         MineSweeperGUI gui = new MineSweeperGUI();
     }
 }

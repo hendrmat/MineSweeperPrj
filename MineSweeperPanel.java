@@ -38,6 +38,7 @@ public class MineSweeperPanel extends JPanel
 
     //Keeps track of wins and losses
     private int size;
+    private int mines;
 
     private boolean minesExposed;
 
@@ -52,16 +53,17 @@ public class MineSweeperPanel extends JPanel
      *A method that initializes all instance variables and creates new
      * JPanels one of which contains the board for the game
      *****************************************************************/
-    public MineSweeperPanel(int size){
+    public MineSweeperPanel(int size, int mines){
         //sets up the size of the game board
         this.size = size;
+        this.mines = mines;
         board = new JButton[size][size];
         //make a MineSweeperGame for the Panels use
-        this.game = new MineSweeperGame(this.size);
+        this.game = new MineSweeperGame(this.size, this.mines);
 
         //create the center panel to be filled with cells/JButtons
         JPanel mineSweep = new JPanel();
-        mineSweep.setPreferredSize(new Dimension(400,400));
+        mineSweep.setPreferredSize(new Dimension(600,600));
         //create the bottom panel that will contain the labels/action
         //buttons
         JPanel somePanel = new JPanel();
@@ -98,7 +100,7 @@ public class MineSweeperPanel extends JPanel
         add(somePanel, BorderLayout.SOUTH);
 
         //Making a button listener so the buttons actually work
-        buttonListener listener = new buttonListener();
+        ButtonListener listener = new ButtonListener();
 
         //Adding the button listener to the buttons
         minesButton.addActionListener(listener);
@@ -170,7 +172,7 @@ public class MineSweeperPanel extends JPanel
      * the game right away.  This will have the same effect as clicking the X
      * on the upper right corner.
      */
-    private class buttonListener implements ActionListener {
+    private class ButtonListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -189,6 +191,10 @@ public class MineSweeperPanel extends JPanel
                 game.reset();
             }
 
+            if (showCell == e.getSource()) {
+                displayBoard();
+            }
+
         }
     }
 
@@ -199,14 +205,18 @@ public class MineSweeperPanel extends JPanel
      */
     public void displayBoard() {
         JButton button;
+
         for (int row = 0; row < this.size; row++) {
             for (int col = 0; col < this.size; col++) {
                 iCell = this.game.getCell(row, col);
                 button = this.board[row][col];
-                if (iCell.isExposed())
+
+                if (iCell.isExposed()) {
                     board[row][col].setEnabled(false);
-                else
+                }
+                else {
                     board[row][col].setEnabled(true);
+                }
 
                 if (iCell.isMine()) {
                     if (minesExposed == true) {
@@ -216,8 +226,43 @@ public class MineSweeperPanel extends JPanel
                         board[row][col].setText("");
                     }
                 }
+
+                if (iCell.isFlagged()) {
+                    board[row][col].setEnabled(false);
+                    board[row][col].setText("F");
+                }
+                int nearbyMines = 0;
+                for (int i = -1; i < 2; i++) {
+                    for (int j = -1; j < 2; j++) {
+                        if ((!iCell.isMine()) &&
+                            (row + i >= 0 && row + i < size) &&
+                            (col + j >= 0 && col + j < size)) {
+                            if (game.getCell(row + i, col + j).isMine()) {
+                                nearbyMines++;
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                if (!iCell.isMine() && iCell.isExposed()) {
+                    if (nearbyMines != 0) {
+                        board[row][col].setText("" + nearbyMines);
+                    }
+                    if (nearbyMines == 0) {
+                        game.exposeRecursive(row, col);
+                    }
+                }
+
+
+                }
+
             }
-        }
+
+
+
     }
     /**
      * This class provides mouse functionality.  This will be necessary for the
@@ -227,7 +272,7 @@ public class MineSweeperPanel extends JPanel
 
         @Override
         public void mouseClicked(MouseEvent e){
-            System.out.println("ouch!");
+
         }
 
         //This mouse method will allow the user to left click to select cells
@@ -266,6 +311,7 @@ public class MineSweeperPanel extends JPanel
         int rows = Objects.requireNonNull(rowsAndColumns)[0];
         int columns = rowsAndColumns[1];
         this.game.select(rows,columns);
+        game.getGameStatus();
 
         this.win = this.game.getWins();
         this.lose = this.game.getLosses();
