@@ -37,7 +37,6 @@ public class MineSweeperPanel extends JPanel
     private int lose;
 
     //Keeps track of wins and losses
-    private int size;
     private int mines;
 
     private boolean minesExposed;
@@ -53,23 +52,24 @@ public class MineSweeperPanel extends JPanel
      *A method that initializes all instance variables and creates new
      * JPanels one of which contains the board for the game
      *****************************************************************/
-    public MineSweeperPanel(int size, int mines){
+    public MineSweeperPanel(int rows, int columns, int mines){
         //sets up the size of the game board
-        this.size = size;
+        this.rows = rows;
+        this.columns = columns;
         this.mines = mines;
-        board = new JButton[size][size];
+        board = new JButton[rows][columns];
         //make a MineSweeperGame for the Panels use
-        this.game = new MineSweeperGame(this.size, this.mines);
+        this.game = new MineSweeperGame(this.rows, this.columns, this.mines);
 
         //create the center panel to be filled with cells/JButtons
         JPanel mineSweep = new JPanel();
-        mineSweep.setPreferredSize(new Dimension(600,600));
+        mineSweep.setPreferredSize(new Dimension(50 * rows,50 * columns));
         //create the bottom panel that will contain the labels/action
         //buttons
         JPanel somePanel = new JPanel();
-        somePanel.setPreferredSize(new Dimension(200,400));
+        somePanel.setPreferredSize(new Dimension(20 * rows,40 * columns));
         // A mouse listener for the board
-        theMouseListener mouseListener = new theMouseListener();
+        TheMouseListener mouseListener = new TheMouseListener();
 
         //instantiating the quit button
         this.quitButton = new JButton("Quit");
@@ -92,11 +92,11 @@ public class MineSweeperPanel extends JPanel
         this.lose = 0;
 
         // Using Grid Layout set to the inputted size
-        mineSweep.setLayout(new GridLayout(this.size, this.size));
+        mineSweep.setLayout(new GridLayout(this.rows, this.columns));
         add(mineSweep, BorderLayout.CENTER);
 
         //using Grid layout for overall panel as well
-        somePanel.setLayout(new GridLayout(this.size, this.size));
+        somePanel.setLayout(new GridLayout(this.rows, this.columns));
         add(somePanel, BorderLayout.SOUTH);
 
         //Making a button listener so the buttons actually work
@@ -118,11 +118,11 @@ public class MineSweeperPanel extends JPanel
 
 
         //Sets up the board for the game
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                board[row][col] = new JButton("");
-                board[row][col].addMouseListener(mouseListener);
-                mineSweep.add(board[row][col]);
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < columns; c++) {
+                board[r][c] = new JButton("");
+                board[r][c].addMouseListener(mouseListener);
+                mineSweep.add(board[r][c]);
             }
         }
 
@@ -130,12 +130,12 @@ public class MineSweeperPanel extends JPanel
         this.displayBoard();
     }
 
-    public void gameButtons(theMouseListener mouseListener,
+    public void gameButtons(TheMouseListener mouseListener,
                             JPanel mineSweep) {
         JButton newBut;
-        this.board = new JButton[this.size][this.size];
-        for (int i = 0; i < this.size; i++) {
-            for (int j = 0; j < this.size; j++) {
+        this.board = new JButton[this.rows][this.columns];
+        for (int i = 0; i < this.rows; i++) {
+            for (int j = 0; j < this.columns; j++) {
                 newBut = buttonSetup(mouseListener);
                 this.board[i][j] = newBut;
                 mineSweep.add(newBut);
@@ -152,13 +152,13 @@ public class MineSweeperPanel extends JPanel
      * @param mouseListener allows the mouse to perform functions such as flagging mines
      * @return returns the size of the button
      */
-    public JButton buttonSetup(theMouseListener mouseListener) {
+    public JButton buttonSetup(TheMouseListener mouseListener) {
         emptyIcon = new ImageIcon();
         //create a new button
         JButton cellButton = new JButton("" );
 
         //using Dimension, set the size of the button
-        cellButton.setPreferredSize(new Dimension(20, 20));
+        cellButton.setPreferredSize(new Dimension(2 * rows, 2 * columns));
 
         //add our MouseListener
         cellButton.addMouseListener(mouseListener);
@@ -206,8 +206,8 @@ public class MineSweeperPanel extends JPanel
     public void displayBoard() {
         JButton button;
 
-        for (int row = 0; row < this.size; row++) {
-            for (int col = 0; col < this.size; col++) {
+        for (int row = 0; row < this.rows; row++) {
+            for (int col = 0; col < this.columns; col++) {
                 iCell = this.game.getCell(row, col);
                 button = this.board[row][col];
 
@@ -216,6 +216,12 @@ public class MineSweeperPanel extends JPanel
                 }
                 else {
                     board[row][col].setEnabled(true);
+                    board[row][col].setText("");
+                }
+
+                if (iCell.isFlagged()) {
+                    board[row][col].setText("F");
+                    board[row][col].setEnabled(false);
                 }
 
                 if (iCell.isMine()) {
@@ -224,27 +230,23 @@ public class MineSweeperPanel extends JPanel
                     }
                     else if(minesExposed == false) {
                         board[row][col].setText("");
+                        if (iCell.isFlagged()) {
+                            board[row][col].setText("F");
+                        }
                     }
                 }
 
-                if (iCell.isFlagged()) {
-                    board[row][col].setEnabled(false);
-                    board[row][col].setText("F");
-                }
                 int nearbyMines = 0;
                 for (int i = -1; i < 2; i++) {
                     for (int j = -1; j < 2; j++) {
                         if ((!iCell.isMine()) &&
-                            (row + i >= 0 && row + i < size) &&
-                            (col + j >= 0 && col + j < size)) {
+                            (row + i >= 0 && row + i < rows) &&
+                            (col + j >= 0 && col + j < columns)) {
                             if (game.getCell(row + i, col + j).isMine()) {
                                 nearbyMines++;
                             }
-
                         }
-
                     }
-
                 }
 
                 if (!iCell.isMine() && iCell.isExposed()) {
@@ -255,20 +257,14 @@ public class MineSweeperPanel extends JPanel
                         game.exposeRecursive(row, col);
                     }
                 }
-
-
-                }
-
             }
-
-
-
+        }
     }
     /**
      * This class provides mouse functionality.  This will be necessary for the
      * user as it governs flagging as well as exposing cells.
      */
-    private class theMouseListener implements MouseListener{
+    private class TheMouseListener implements MouseListener{
 
         @Override
         public void mouseClicked(MouseEvent e){
@@ -311,7 +307,16 @@ public class MineSweeperPanel extends JPanel
         int rows = Objects.requireNonNull(rowsAndColumns)[0];
         int columns = rowsAndColumns[1];
         this.game.select(rows,columns);
-        game.getGameStatus();
+
+        if (game.getGameStatus() == GameStatus.Lost) {
+            JOptionPane.showMessageDialog(null, "Wow! You Lose!");
+            game.reset();
+        }
+
+        if (game.getGameStatus() == GameStatus.Won) {
+            JOptionPane.showMessageDialog(null, "Bravo! You Win!");
+            game.reset();
+        }
 
         this.win = this.game.getWins();
         this.lose = this.game.getLosses();
@@ -329,8 +334,8 @@ public class MineSweeperPanel extends JPanel
      *****************************************************************/
     private int[] getLocationOfEvent(MouseEvent e){
         int[] cells = {0,0};
-        for(int i = 0; i<this.size;i++){
-            for (int j = 0; j<this.size;j++)
+        for(int i = 0; i <this.rows ;i++){
+            for (int j = 0; j <this.columns ;j++)
                 if(this.board[i][j] == e.getSource()){
                     cells[0]=i;
                     cells[1]=j;

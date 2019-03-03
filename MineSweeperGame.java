@@ -8,27 +8,28 @@ import java.util.Objects;
 public class MineSweeperGame {
 
 
-    private int size;
     private Cell[][] board;
     private GameStatus status;
     private int totalMineCount;
+    private int rows;
+    private int cols;
     private int wins;
     private int losses;
 
 
-    public MineSweeperGame(int size, int totalMineCount) {
+    public MineSweeperGame(int rows, int cols, int totalMineCount) {
 
-        board = new Cell[size][size];
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
+        board = new Cell[rows][cols];
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
                 board[row][col] = new Cell();
             }
         }
         Random random = new Random();
         int mineCount = 0;
         while (mineCount < totalMineCount) { // place the total number of mines
-            int col = random.nextInt(size);
-            int row = random.nextInt(size);
+            int col = random.nextInt(cols);
+            int row = random.nextInt(rows);
             if (!board[row][col].isMine()) {
                 board[row][col].setMine(true);
                 mineCount++;
@@ -42,21 +43,25 @@ public class MineSweeperGame {
 
 
     public GameStatus getGameStatus(){
-        int covered = size * size;
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col].isExposed()) {
-                    //System.out.println("ouch");
-                    return GameStatus.Lost;
-                }
-                if (board[row][col].isExposed()) {
-                    covered--;
+        int covered = rows * cols;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (board[r][c].isExposed() && board[r][c].isMine()) {
+                   return GameStatus.Lost;
                 }
             }
         }
-        if (covered == totalMineCount) {
-            return status.Won;
+        //if (board[row][col].isExposed() && board[row][col].isMine()) {
+         //   return GameStatus.Lost;
+        //}
+        if (board[rows][cols].isExposed()) {
+            covered--;
+            if (covered == totalMineCount) {
+                return status.Lost;
+            }
         }
+
+
 
         return status.NotOverYet;
 
@@ -89,8 +94,7 @@ public class MineSweeperGame {
     }
 
     public void reset(){
-        totalMineCount = 0;
-        MineSweeperGame game = new MineSweeperGame(size, totalMineCount);
+        MineSweeperGame game = new MineSweeperGame(rows, cols, totalMineCount);
     }
 
     public int getWins() {
@@ -101,12 +105,18 @@ public class MineSweeperGame {
     }
 
     public void toggleFlag(int row, int column) {
-        board[row][column].isFlagged();
+        if (!board[row][column].isFlagged()) {
+            board[row][column].setFlagged(true);
+        }
+
+        else if (board[row][column].isFlagged()) {
+            board[row][column].setFlagged(false);
+        }
     }
 
     public void exposeRecursive(int x, int y) {
 
-        if (x < 0 || x > size || y < 0 || y > size) {
+        if (x < 0 || x > rows || y < 0 || y > cols) {
             return;
         }
 
