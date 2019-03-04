@@ -11,18 +11,19 @@ public class MineSweeperGame {
     private Cell[][] board;
     private GameStatus status;
     private int totalMineCount;
-    private int rows;
-    private int cols;
+    private int numRows;
+    private int numCols;
     private int wins;
     private int losses;
-
+    private int totalSquares;
+    private int exposedSquares = 0;
 
     public MineSweeperGame(int rows, int cols, int totalMineCount) {
 
         board = new Cell[rows][cols];
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                board[row][col] = new Cell();
+                board[row][col] = new Cell(0, false, false, false);
             }
         }
         Random random = new Random();
@@ -36,34 +37,40 @@ public class MineSweeperGame {
             }
         }
 
-
+        totalSquares = rows * cols;
+        this.totalMineCount = mineCount;
     }
 
 
 
 
     public GameStatus getGameStatus(){
-        int covered = rows * cols;
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                if (board[r][c].isExposed() && board[r][c].isMine()) {
-                   return GameStatus.Lost;
+
+        exposedSquares = 0;
+        for (int row = 0; row < 10; row++) {
+            for (int col = 0; col < 10; col++) {
+                if (board[row][col].isExposed()) {
+                    exposedSquares++;
+                }
+                if (board[row][col].isExposed() && board[row][col].isMine()) {
+                    exposedSquares = 0;
+                    totalSquares = 0;
+                    totalMineCount = 0;
+                    return status.Lost;
                 }
             }
         }
-        //if (board[row][col].isExposed() && board[row][col].isMine()) {
-         //   return GameStatus.Lost;
-        //}
-        if (board[rows][cols].isExposed()) {
-            covered--;
-            if (covered == totalMineCount) {
-                return status.Lost;
-            }
+
+        if (exposedSquares >= (totalSquares - totalMineCount)) {
+            exposedSquares = 0;
+            totalSquares = 0;
+            totalMineCount = 0;
+            return status.Won;
         }
 
 
-
         return status.NotOverYet;
+
 
     }
 
@@ -79,13 +86,6 @@ public class MineSweeperGame {
             return;
         }
 
-        if(board[row][col].isMine()) {
-            //status = GameStatus.Lost;
-            //losses++;
-            //JOptionPane.showMessageDialog(null, "Wow! You Lose!");
-            //reset();
-        }
-
         board[row][col].setExposed(true);
 
 
@@ -94,7 +94,94 @@ public class MineSweeperGame {
     }
 
     public void reset(){
-        MineSweeperGame game = new MineSweeperGame(rows, cols, totalMineCount);
+
+        exposedSquares = 0;
+        totalSquares = 0;
+        totalMineCount = 0;
+
+        MineSweeperGame game = new MineSweeperGame(numRows, numCols, totalMineCount);
+
+        //Allows the player to enter the number of rows on the board
+        String rowHolder = JOptionPane.showInputDialog("Please" +
+                        " enter the preferred number of rows(3-30: ",
+                "10");
+
+        //Converts the string to an integer
+        numRows = Integer.parseInt(rowHolder);
+
+        while (numRows < 3 || numRows > 30) {
+            String newRowHolder = JOptionPane.showInputDialog("Please enter a valid number of rows");
+            numRows = Integer.parseInt(newRowHolder);
+        }
+
+        //Allows the player to enter the number of rows on the board
+        String colHolder = JOptionPane.showInputDialog("Please" +
+                        " enter the preferred number of columns(3-30: ",
+                "10");
+
+        //Converts the string to an integer
+        numCols = Integer.parseInt(colHolder);
+
+        while (numCols < 3 || numCols > 30) {
+            String newColHolder = JOptionPane.showInputDialog("Please enter a valid number of columns");
+            numCols = Integer.parseInt(newColHolder);
+        }
+
+        //Allows the player to enter the number of mines on the board
+        String mines = JOptionPane.showInputDialog("Please enter the number of mines.",
+                10);
+
+        //Converts the string to an integer
+        totalMineCount = Integer.parseInt(mines);
+
+        while (totalMineCount > (numRows * numCols) || (totalMineCount <= 0)) {
+            String newMines = JOptionPane.showInputDialog("Too many or not enough mines" +
+                    " for the board, please try again.");
+            totalMineCount = Integer.parseInt(newMines);
+        }
+
+        board = new Cell[numRows][numCols];
+        for (int row = 0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                board[row][col] = new Cell(0, false, false, false);
+            }
+        }
+        Random random = new Random();
+        int mineCount = 0;
+        while (mineCount < totalMineCount) { // place the total number of mines
+            int col = random.nextInt(numCols);
+            int row = random.nextInt(numRows);
+            if (!board[row][col].isMine()) {
+                board[row][col].setMine(true);
+                mineCount++;
+            }
+        }
+
+        totalSquares = numRows * numCols;
+    }
+
+    public void incrementWins(int wins) {
+        this.wins++;
+    }
+
+    public void incrementLosses(int losses) {
+        this.losses++;
+    }
+
+    public void setNumRows(int numRows) {
+        this.numRows = numRows;
+    }
+
+    public void setNumCols(int numCols) {
+        this.numCols = numCols;
+    }
+
+    public int getNumRows() {
+        return this.numRows;
+    }
+
+    public int getNumCols(){
+        return this.numCols;
     }
 
     public int getWins() {
@@ -116,7 +203,7 @@ public class MineSweeperGame {
 
     public void exposeRecursive(int x, int y) {
 
-        if (x < 0 || x > rows || y < 0 || y > cols) {
+        if (x < 0 || x > numRows || y < 0 || y > numCols) {
             return;
         }
 

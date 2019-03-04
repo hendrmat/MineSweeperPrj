@@ -144,6 +144,10 @@ public class MineSweeperPanel extends JPanel
 
     }
 
+    public MineSweeperPanel() {
+
+    }
+
     /** This method will set up the buttons and mouse functionality to implement
      *  the other functions of the game, such as flagging mines, starting a new game,
      *  and quitting the game.  This will also allow the player to expose cells and
@@ -219,7 +223,7 @@ public class MineSweeperPanel extends JPanel
                     board[row][col].setText("");
                 }
 
-                if (iCell.isFlagged()) {
+                if ((iCell.isFlagged()) && (!iCell.isExposed())) {
                     board[row][col].setText("F");
                     board[row][col].setEnabled(false);
                 }
@@ -308,12 +312,19 @@ public class MineSweeperPanel extends JPanel
         int columns = rowsAndColumns[1];
         this.game.select(rows,columns);
 
+        if (game.getGameStatus() == GameStatus.NotOverYet) {
+            displayBoard();
+            return;
+        }
+
         if (game.getGameStatus() == GameStatus.Lost) {
+            game.incrementLosses(lose);
             JOptionPane.showMessageDialog(null, "Wow! You Lose!");
             game.reset();
         }
 
-        if (game.getGameStatus() == GameStatus.Won) {
+        else if (game.getGameStatus() == GameStatus.Won) {
+            game.incrementWins(win);
             JOptionPane.showMessageDialog(null, "Bravo! You Win!");
             game.reset();
         }
@@ -386,4 +397,6 @@ public class MineSweeperPanel extends JPanel
         //displaying the GUI again to update it
         displayBoard();
     }
+
+
 }
