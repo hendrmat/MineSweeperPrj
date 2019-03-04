@@ -1,7 +1,11 @@
 package project2;
 
 import javax.swing.*;
+import javax.swing.ImageIcon;
 import java.awt.*;
+import java.awt.Image;
+import javax.imageio.*;
+import java.io.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -46,11 +50,18 @@ public class MineSweeperPanel extends JPanel
     private JLabel winsLabel;
 
     //Image Icon for empty cells
-    private ImageIcon emptyIcon;
+    private ImageIcon[] image;
+    private final int NUM_ICONS = 12;
 
     /******************************************************************
      *A method that initializes all instance variables and creates new
      * JPanels one of which contains the board for the game
+     * We will also set up the ImageIcon array for ease of
+     * use in future methods, particularly in the method that determines the number
+     * of surrounding mines.
+     *
+     * Credit to http://zetcode.com/tutorials/javagamestutorial/minesweeper/ for
+     * the idea to use an array for the image icons.
      *****************************************************************/
     public MineSweeperPanel(int rows, int columns, int mines){
         //sets up the size of the game board
@@ -116,6 +127,12 @@ public class MineSweeperPanel extends JPanel
         somePanel.add(winsLabel);
         somePanel.add(lossesLabel);
 
+        //Adding the ImageIcons to the array
+        for (int i = 0; i < NUM_ICONS; i++) {
+            String path = "src/project2/msimages/" + i + ".svg";
+            image[i] = new ImageIcon(path);
+        }
+
 
         //Sets up the board for the game
         for (int r = 0; r < rows; r++) {
@@ -144,10 +161,6 @@ public class MineSweeperPanel extends JPanel
 
     }
 
-    public MineSweeperPanel() {
-
-    }
-
     /** This method will set up the buttons and mouse functionality to implement
      *  the other functions of the game, such as flagging mines, starting a new game,
      *  and quitting the game.  This will also allow the player to expose cells and
@@ -157,9 +170,9 @@ public class MineSweeperPanel extends JPanel
      * @return returns the size of the button
      */
     public JButton buttonSetup(TheMouseListener mouseListener) {
-        emptyIcon = new ImageIcon();
+
         //create a new button
-        JButton cellButton = new JButton("" );
+        JButton cellButton = new JButton(image[11]);
 
         //using Dimension, set the size of the button
         cellButton.setPreferredSize(new Dimension(2 * rows, 2 * columns));
@@ -220,22 +233,22 @@ public class MineSweeperPanel extends JPanel
                 }
                 else {
                     board[row][col].setEnabled(true);
-                    board[row][col].setText("");
+                    board[row][col].setIcon(image[11]);
                 }
 
                 if ((iCell.isFlagged()) && (!iCell.isExposed())) {
-                    board[row][col].setText("F");
+                    board[row][col].setIcon(image[10]);
                     board[row][col].setEnabled(false);
                 }
 
                 if (iCell.isMine()) {
                     if (minesExposed == true) {
-                        board[row][col].setText("M");
+                        board[row][col].setIcon(image[9]);
                     }
                     else if(minesExposed == false) {
-                        board[row][col].setText("");
+                        board[row][col].setIcon(image[11]);
                         if (iCell.isFlagged()) {
-                            board[row][col].setText("F");
+                            board[row][col].setIcon(image[10]);
                         }
                     }
                 }
@@ -254,9 +267,7 @@ public class MineSweeperPanel extends JPanel
                 }
 
                 if (!iCell.isMine() && iCell.isExposed()) {
-                    if (nearbyMines != 0) {
-                        board[row][col].setText("" + nearbyMines);
-                    }
+                        board[row][col].setIcon(image[nearbyMines]);
                     if (nearbyMines == 0) {
                         game.exposeRecursive(row, col);
                     }
