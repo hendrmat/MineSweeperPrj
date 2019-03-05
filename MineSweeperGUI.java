@@ -18,16 +18,17 @@ import javax.swing.*;
 public class MineSweeperGUI extends JFrame {
     public MineSweeperGUI() {
         JFrame frame = new JFrame();
-        //set the title of the game to the name variable
+
 
         //make sure the frame will close
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Allows the player to enter his/her name
+        //and set the title of the game to the name variable
         String playerName = JOptionPane.showInputDialog("Please enter your name: ");
         frame.setTitle(playerName + "'s Minesweeper");
 
-        //Allows the player to enter the number of rows on the board
+        //Allows the player to enter the number of rows on the board (defaults to 10)
         String rowHolder = JOptionPane.showInputDialog("Please" +
                         " enter the preferred number of rows(3-30: ",
                 "10");
@@ -35,12 +36,14 @@ public class MineSweeperGUI extends JFrame {
         //Converts the string to an integer
         int row = Integer.parseInt(rowHolder);
 
+        //The while loop will force the player to enter a valid number of rows and contains
+        //a separate string from the original message
         while (row < 3 || row > 30) {
             String newRowHolder = JOptionPane.showInputDialog("Please enter a valid number of rows");
             row = Integer.parseInt(newRowHolder);
         }
 
-        //Allows the player to enter the number of rows on the board
+        //Allows the player to enter the number of columns on the board (defaults to 10)
         String colHolder = JOptionPane.showInputDialog("Please" +
                         " enter the preferred number of columns(3-30: ",
                 "10");
@@ -48,6 +51,8 @@ public class MineSweeperGUI extends JFrame {
         //Converts the string to an integer
         int col = Integer.parseInt(colHolder);
 
+        //The while loop will force the player to enter a valid number of columns and contains
+        //a separate string from the original message
         while (col < 3 || col > 30) {
             String newColHolder = JOptionPane.showInputDialog("Please enter a valid number of columns");
             col = Integer.parseInt(newColHolder);
@@ -60,6 +65,8 @@ public class MineSweeperGUI extends JFrame {
         //Converts the string to an integer
         int numMines = Integer.parseInt(mines);
 
+        //The while loop will force the player to select a number of mines that can fit the board
+        //and contains a separate string from the original message
         while (numMines > (row * col) || (numMines <= 0)) {
             String newMines = JOptionPane.showInputDialog("Too many or not enough mines" +
                     " for the board, please try again.");

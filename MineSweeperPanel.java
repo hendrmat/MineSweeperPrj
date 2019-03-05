@@ -1,7 +1,11 @@
 package project2;
 
 import javax.swing.*;
+import javax.swing.ImageIcon;
 import java.awt.*;
+import java.awt.Image;
+import javax.imageio.*;
+import java.io.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -33,30 +37,41 @@ public class MineSweeperPanel extends JPanel
     //Size of board
     private int rows;
     private int columns;
+    //Variable used to tally the wins and losses
     private int win;
     private int lose;
 
-    //Keeps track of wins and losses
+    //Number of mines
     private int mines;
 
+    //Shows whether or not the mines are revealed on the board
     private boolean minesExposed;
 
     //Displays wins and losses
     private JLabel lossesLabel;
     private JLabel winsLabel;
 
-    //Image Icon for empty cells
-    private ImageIcon emptyIcon;
+    //Image Icon for empty cells as well as the number of icons on the board
+    private ImageIcon[] image;
+    private final int NUM_ICONS = 12;
 
     /******************************************************************
      *A method that initializes all instance variables and creates new
      * JPanels one of which contains the board for the game
+     * We will also set up the ImageIcon array for ease of
+     * use in future methods, particularly in the method that determines the number
+     * of surrounding mines.
+     *
+     * Credit to http://zetcode.com/tutorials/javagamestutorial/minesweeper/ for
+     * the idea to use an array for the image icons.
      *****************************************************************/
     public MineSweeperPanel(int rows, int columns, int mines){
         //sets up the size of the game board
         this.rows = rows;
         this.columns = columns;
+        //sets up the number of mines on the game board
         this.mines = mines;
+        //sets up the board for the game
         board = new JButton[rows][columns];
         //make a MineSweeperGame for the Panels use
         this.game = new MineSweeperGame(this.rows, this.columns, this.mines);
@@ -64,8 +79,7 @@ public class MineSweeperPanel extends JPanel
         //create the center panel to be filled with cells/JButtons
         JPanel mineSweep = new JPanel();
         mineSweep.setPreferredSize(new Dimension(50 * rows,50 * columns));
-        //create the bottom panel that will contain the labels/action
-        //buttons
+        //create the bottom panel that will contain the labels/action buttons
         JPanel somePanel = new JPanel();
         somePanel.setPreferredSize(new Dimension(20 * rows,40 * columns));
         // A mouse listener for the board
@@ -116,6 +130,12 @@ public class MineSweeperPanel extends JPanel
         somePanel.add(winsLabel);
         somePanel.add(lossesLabel);
 
+        //Adding the ImageIcons to the array
+        for (int i = 0; i < NUM_ICONS; i++) {
+            String path = "src/project2/msimages/" + i + ".svg";
+            image[i] = new ImageIcon(path);
+        }
+
 
         //Sets up the board for the game
         for (int r = 0; r < rows; r++) {
@@ -144,10 +164,6 @@ public class MineSweeperPanel extends JPanel
 
     }
 
-    public MineSweeperPanel() {
-
-    }
-
     /** This method will set up the buttons and mouse functionality to implement
      *  the other functions of the game, such as flagging mines, starting a new game,
      *  and quitting the game.  This will also allow the player to expose cells and
@@ -157,9 +173,9 @@ public class MineSweeperPanel extends JPanel
      * @return returns the size of the button
      */
     public JButton buttonSetup(TheMouseListener mouseListener) {
-        emptyIcon = new ImageIcon();
+
         //create a new button
-        JButton cellButton = new JButton("" );
+        JButton cellButton = new JButton(image[11]);
 
         //using Dimension, set the size of the button
         cellButton.setPreferredSize(new Dimension(2 * rows, 2 * columns));
@@ -187,10 +203,13 @@ public class MineSweeperPanel extends JPanel
                 System.exit(0);
             }
 
+            //This button will either show or not show the mines
             if (minesButton == e.getSource()) {
                 toggleMines();
             }
 
+            //This button will reset the game and allow entry of rows, columns,
+            //and mines
             if (newGame == e.getSource()) {
                 game.reset();
             }
@@ -203,44 +222,59 @@ public class MineSweeperPanel extends JPanel
     }
 
     /**
-     * This button will allow the player to see the board in its entirety, mines included.
-     * This will be useful for those who want to test how the game works without leaving
-     * everything to probability.
+     * This button will allow the player to see what has already been clicked,
+     * which will hopefully provide the player with enough clues to locate and
+     * flag any mines that may be hidden on the board
      */
     public void displayBoard() {
         JButton button;
 
+        //This loop will call for the position of a given cell
         for (int row = 0; row < this.rows; row++) {
             for (int col = 0; col < this.columns; col++) {
                 iCell = this.game.getCell(row, col);
                 button = this.board[row][col];
 
+                //If the cell is exposed, disable the cell so clicking it
+                //will have no effect
                 if (iCell.isExposed()) {
                     board[row][col].setEnabled(false);
                 }
+                //If the cell is not exposed, set the cell to enabled and
+                //able to be clicked.
                 else {
                     board[row][col].setEnabled(true);
-                    board[row][col].setText("");
+                    board[row][col].setIcon(image[11]);
                 }
 
+                //If the cell is flagged, set the cell to disabled and place
+                //a flag image on the cell to indicate it is safe to click
                 if ((iCell.isFlagged()) && (!iCell.isExposed())) {
-                    board[row][col].setText("F");
+                    board[row][col].setIcon(image[10]);
                     board[row][col].setEnabled(false);
                 }
 
+                //Shows the image of a mine if the cell is exposed and mines are
+                //revealed
                 if (iCell.isMine()) {
                     if (minesExposed == true) {
-                        board[row][col].setText("M");
+                        board[row][col].setIcon(image[9]);
                     }
                     else if(minesExposed == false) {
-                        board[row][col].setText("");
+                        board[row][col].setIcon(image[11]);
+                        //Prioritizes the image of a flag over that of a blank image
+                        //if the cell was a mine.  Previous versions of the program
+                        //tipped off the player by leaving a blank where the flag should be
                         if (iCell.isFlagged()) {
-                            board[row][col].setText("F");
+                            board[row][col].setIcon(image[10]);
                         }
                     }
                 }
 
+                //Sets the variable for any nearby mines to zero on a given square
                 int nearbyMines = 0;
+                //This loop will check the eight squares surrounding the selected cell
+                //for mines.  If so, increment the variable by one for each mine.
                 for (int i = -1; i < 2; i++) {
                     for (int j = -1; j < 2; j++) {
                         if ((!iCell.isMine()) &&
@@ -253,10 +287,13 @@ public class MineSweeperPanel extends JPanel
                     }
                 }
 
+                //This will set the image for the proper number of mines surrounding
+                //the selected cell
                 if (!iCell.isMine() && iCell.isExposed()) {
-                    if (nearbyMines != 0) {
-                        board[row][col].setText("" + nearbyMines);
-                    }
+                        board[row][col].setIcon(image[nearbyMines]);
+                        //This will reveal the squares surrounding mines that also
+                        //do not have any nearby mines.  Repeat until there is a mine
+                        //nearby.
                     if (nearbyMines == 0) {
                         game.exposeRecursive(row, col);
                     }
@@ -312,29 +349,40 @@ public class MineSweeperPanel extends JPanel
         int columns = rowsAndColumns[1];
         this.game.select(rows,columns);
 
+        /*This will allow the game to continue on and also stop this method call
+        //early.  Previous versions went through multiple method calls to
+        //getGameStatus(), which caused a bug in calculating the win condition.
+        */
         if (game.getGameStatus() == GameStatus.NotOverYet) {
             displayBoard();
             return;
         }
 
+        //Sets the game status to lost as well as increments the number of losses.
+        //This method is placed before the won condition to prioritize a loss in the
+        //event of a player hitting a mine on what would be the last play of the game.
         if (game.getGameStatus() == GameStatus.Lost) {
             game.incrementLosses(lose);
             JOptionPane.showMessageDialog(null, "Wow! You Lose!");
             game.reset();
         }
 
+        //Set the game status to won as well as increments the number of wins.
         else if (game.getGameStatus() == GameStatus.Won) {
             game.incrementWins(win);
             JOptionPane.showMessageDialog(null, "Bravo! You Win!");
             game.reset();
         }
 
+        //Returns wins and losses
         this.win = this.game.getWins();
         this.lose = this.game.getLosses();
 
+        //Sets the label to reflect the proper number of wins and losses
         winsLabel.setText("wins: " +win);
         lossesLabel.setText(("losses: "+lose));
 
+        //Displays the current state of the board
         displayBoard();
     }
 
